@@ -58,26 +58,48 @@ void Client::start_read()
     QStringList text_input_list;
     QString input_data;
 
+
+    /*
     QList<QRegularExpression> regexList;
     regexList.append(QRegularExpression("^\\s*show\\s*user\\s*list\\\r\n\\s*$"));
+    */
+
+
+    QMap<QString, std::function<void()>> regexActionMap;
+    regexActionMap.insert("^\\s*show\\s*user\\s*list\\\r\n\\s*$",[&](){
+        Server::show_all_connections(this);
+    });
+    regexActionMap.insert("^\\s*show\\s*my\\s*socket\\\r\n\\s*$",[&](){
+        show_my_own_connection();
+    });
+    regexActionMap.insert("^\\s*show\\s*date\\\r\n\\s*$",[&](){
+        show_date();
+    });
+    regexActionMap.insert("^\\s*help\\\r\n\\s*$",[&](){
+        show_help();
+    });
+    regexActionMap.insert("^\\s*exit\\\r\n\\s*$",[&](){
+        user_disconect();
+    });
+    regexActionMap.insert("^\\s*timer\\s*start\\\r\n\\s*$",[&](){
+        timer_start();
+    });
+    regexActionMap.insert("^\\s*timer\\s*stop\\\r\n\\s*$",[&](){
+        timer_stop();
+    });
+    regexActionMap.insert("^\\s*timer\\s*reset\\\r\n\\s*$",[&](){
+        timer_reset();
+    });
+    regexActionMap.insert("^\\s*timer\\s*time\\\r\n\\s*$",[&](){
+        show_timer_time();
+    });
+
+
 
     while(new_socket->canReadLine()){
 
         input_data = QString(new_socket->readLine());
         text_input_list.append(input_data);
-        /*
-        if(text_input_list.contains(QRegularExpression("^\\s*show\\s*user\\s*list\\\r\n\\s*$")))
-        {
-            Server::show_all_connections(this);
-        }
-
-        if(text_input_list.contains("show my socket\r\n"))
-        {
-            show_my_own_connection();
-        }
-        if(text_input_list.contains("show date\r\n")){
-            show_date();
-        }
 
         if (text_input_list.last().startsWith("send private to "))
         {
@@ -97,38 +119,15 @@ void Client::start_read()
             QString username = text_input_list.join("").remove(0, text_input_list.last().indexOf(" ")).trimmed();
             set_name(username);
         }
-        if(text_input_list.contains("help\r\n")){
-            show_help();
-        }
-        if(text_input_list.contains("exit\r\n"))
-        {
-            user_disconect();
-        }
-        if(text_input_list.contains("timer start\n")){
-            qDebug("hallo");
-            timer_start();
-        }
-        if(text_input_list.contains("timer stop\r\n")){
-            timer_stop();
-        }
-        if(text_input_list.contains("timer reset\r\n")){
-            timer_reset();
-        }
-        if(text_input_list.contains("timer time\r\n")){
-            show_timer_time();
-        }
-        */
-        for(const QRegularExpression &regex: regexList){
-            for(const QString &text : text_input_list){
-                if(regex.match(text).hasMatch()){
-                  int index = regexList.indexOf(regex);
-                  switch (index) {
-                  case 0:
-                      Server::show_all_connections(this);
-                      break;
-                  default:
-                      break;
-                  }
+
+        for(const QString &text: text_input_list){
+            for(const QString &regexStr : regexActionMap.keys()){
+                QRegularExpression regex(regexStr);
+                QRegularExpressionMatch match = regex.match(text);
+
+                if(match.hasMatch()){
+                  regexActionMap.value(regexStr)();
+                  break;
                 }
             }
         }

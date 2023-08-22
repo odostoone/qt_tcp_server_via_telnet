@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QRegularExpression>
 #include <QMap>
+#include <functional>
 
 class Client : public QObject
 {
