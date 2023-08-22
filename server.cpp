@@ -16,6 +16,7 @@ void Server::new_connection()
 
     new_clienten = new Client(new_socket);
     clienten.append(new_clienten);
+    //test xD
 }
 
 void Server::show_all_connections(Client *client)
