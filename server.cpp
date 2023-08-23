@@ -64,8 +64,11 @@ void Client::start_read()
     regexList.append(QRegularExpression("^\\s*show\\s*user\\s*list\\\r\n\\s*$"));
     */
 
+   // using ActionFunkction = std::function<void(QString, QString)>;
 
+    //std::map<QString, ActionFunkction> regexActionMap;
     QMap<QString, std::function<void()>> regexActionMap;
+
     regexActionMap.insert("^\\s*show\\s*user\\s*list\\\r\n\\s*$",[&](){
         Server::show_all_connections(this);
     });
@@ -93,8 +96,16 @@ void Client::start_read()
     regexActionMap.insert("^\\s*timer\\s*time\\\r\n\\s*$",[&](){
         show_timer_time();
     });
+    regexActionMap.insert("^\\s*all\\a*:\\\r\\n\\s*$",[&](){
 
+    });
 
+    QMapIterator<QString, std::function<void()>> it(regexActionMap);
+    while(it.hasNext()){
+        it.next();
+        const QString& pattern = it.key();
+        qDebug() << "pattern: " << pattern;
+        }
 
     while(new_socket->canReadLine()){
 
@@ -126,9 +137,10 @@ void Client::start_read()
                 QRegularExpressionMatch match = regex.match(text);
 
                 if(match.hasMatch()){
-                  regexActionMap.value(regexStr)();
+                  regexActionMap.value(regexStr);
                   break;
                 }
+
             }
         }
     }
