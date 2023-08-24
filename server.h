@@ -5,9 +5,6 @@
 #include <QtNetwork>
 #include <QList>
 #include <QTimer>
-#include <QRegularExpression>
-#include <QMap>
-#include <functional>
 #include "client.h"
 
 
@@ -24,15 +21,8 @@ public:
 
     QPointer<Client>  new_clienten;
 
-    static void show_all_connections(Client *client);
-
-
 public slots:
         void new_connection();
-public:
-
-
-signals:
 
 };
 

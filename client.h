@@ -48,6 +48,7 @@ public:
     void timer_stop();
     void timer_reset();
     void show_timer_time();
+    void show_all_connections(Client *client);
 
 
 

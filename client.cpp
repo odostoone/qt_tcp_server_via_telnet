@@ -8,7 +8,6 @@ Client::Client(QTcpSocket *socket, QObject *parent) : QObject(parent)
 
     connect(new_socket,&QTcpSocket::readyRead,this,&Client::start_read);
     connect(new_socket,&QTcpSocket::disconnected,this,&Client::closed_client_connection);
-
 }
 
 void Client::start_read()
@@ -16,19 +15,17 @@ void Client::start_read()
     QStringList text_input_list;
     QString input_data;
 
-
     /*
     QList<QRegularExpression> regexList;
     regexList.append(QRegularExpression("^\\s*show\\s*user\\s*list\\\r\n\\s*$"));
     */
-
-   // using ActionFunkction = std::function<void(QString, QString)>;
-
+    // using ActionFunkction = std::function<void(QString, QString)>;
     //std::map<QString, ActionFunkction> regexActionMap;
     QMap<QString, std::function<void()>> regexActionMap;
 
     regexActionMap.insert("^\\s*show\\s*user\\s*list\\\r\n\\s*$",[&](){
-        Server::show_all_connections(this);
+        qDebug() << "hellp";
+        show_all_connections(this);
     });
     regexActionMap.insert("^\\s*show\\s*my\\s*socket\\\r\n\\s*$",[&](){
         show_my_own_connection();
@@ -80,7 +77,6 @@ void Client::start_read()
         }
         if(text_input_list.last().startsWith("all: "))
         {
-
             QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
             send_to_all(message);
         }
@@ -96,10 +92,9 @@ void Client::start_read()
                 QRegularExpressionMatch match = regex.match(text);
 
                 if(match.hasMatch()){
-                  regexActionMap.value(regexStr)();
-                  break;
+                    regexActionMap.value(regexStr)();
+                    break;
                 }
-
             }
         }
     }
@@ -152,7 +147,6 @@ void Client::send_to_all(const QString &message)
 
         QString cleantext = message;
 
-
         QByteArray data = ("["+QString(this->user_name).toUtf8()+"]: "+ cleantext.toUtf8() + "\r\n");
         c->new_socket->write(data);
     }
@@ -160,8 +154,6 @@ void Client::send_to_all(const QString &message)
 
 void Client::set_name(const QString &username)
 {
-    //int myIndex = Server::clienten.indexOf(this);
-
     user_name = username;
     QByteArray data = (user_name.toUtf8()+"\r\n");
     new_socket->write(data);
@@ -173,8 +165,6 @@ void Client::show_help()
     QString help_messeg = "============================\r\n"
                           "=            HELP          =\r\n"
                           "============================\r\n"
-
-
                           "=  setname: Your Name xD   =\r\n"
                           "=  show user list          =\r\n"
                           "=  send private to         =\r\n"
@@ -251,6 +241,26 @@ void Client::show_timer_time()
     QString timer_time = QString::number(hour) + " : " + QString::number(min) + " : "+ QString::number(sec)+"\r\n";
     QByteArray data = timer_time.toUtf8();
     new_socket->write(data);
+}
+
+void Client::show_all_connections(Client *client)
+{
+    QString socketInfo;
+    int count = 0;
+
+    for (int i = 0; i < Server::clienten.size(); ++i) {
+
+        Client *c = Server::clienten[i];
+        socketInfo += "\vSocket      : " + QString::number(count)+
+                "\r\n   Name         : " + c->user_name.toUtf8() +
+                "\r\n   Peer-Adresse : " + c->new_socket->peerAddress().toString() +
+                "\r\n   Peer-Port    : " + QString::number(c->new_socket->peerPort()) +
+                "\r\n------------------------\r\v";
+        count += 1;
+    }
+
+    QByteArray data = socketInfo.toUtf8();
+    client->new_socket->write(data);
 }
 
 
