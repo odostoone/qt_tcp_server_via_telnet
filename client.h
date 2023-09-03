@@ -9,6 +9,7 @@
 #include <QMap>
 #include <functional>
 
+
 class Client : public QObject
 {
     Q_OBJECT
@@ -27,8 +28,6 @@ public:
 
     QString user_name;
 
-    QStringList text_input_list;
-    QString input_data;
 
     void changeName(const QString &username);
     void showHelp();
@@ -49,6 +48,7 @@ public:
     void resetTimer();
     void showTimerTime();
     void showAllConnections(Client *client);
+
 
 
 };

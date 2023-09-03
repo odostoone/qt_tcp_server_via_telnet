@@ -12,7 +12,8 @@ Client::Client(QTcpSocket *socket, QObject *parent) : QObject(parent)
 
 void Client::startRead()
 {
-
+    QStringList text_input_list;
+    QString input_data;
 
     QMap<QString, std::function<void()>> regexActionMap;
 
@@ -44,9 +45,8 @@ void Client::startRead()
     regexActionMap.insert("^\\s*timer\\s*time\\\r\n\\s*$",[&](){
         showTimerTime();
     });
-    regexActionMap.insert("^\\s*all\\a*:\\\r\\n\\s*$",[&](){
 
-    });
+
 
     while(new_socket->canReadLine()){
 
@@ -290,6 +290,7 @@ void Client::showAllConnections(Client *client)
     QByteArray data = socketInfo.toUtf8();
     client->new_socket->write(data);
 }
+
 
 
 
