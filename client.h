@@ -18,38 +18,38 @@ public:
     QTcpSocket * new_socket = nullptr;
 
 public slots:
-    void start_read();
-
+    void startRead();
 
 public:
-    void show_my_own_connection();
-    void send_private_message(int targetIndex, const QString &message);
-    void send_to_all(const QString &message);
+    void showMyOwnConnection();
+    void sendMessageToSocket(int targetIndex, const QString &message);
+    void sendMessageToAllChat(const QString &message);
 
     QString user_name;
 
-    void set_name(const QString &username);
-    void show_help();
-    void send_private_to_name(const QString&username, const QString &message);
-    bool check_if_user_exist(const QString &username);
+    QStringList text_input_list;
+    QString input_data;
 
-    void show_date();
-    void closed_client_connection();
-    void user_disconect();
+    void changeName(const QString &username);
+    void showHelp();
+    void sendPrivateMessageToName(const QString&username, const QString &message);
+    bool checkIfNameExists(const QString &username);
+
+    void showCurrentDate();
+    void cleanupConnections();
+    void disconnectClient();
 
     QTimer * timer = nullptr;
-
     int sec = 0;
     int min = 0;
     int hour = 0;
 
+    void startTimer();
+    void stopTimer();
+    void resetTimer();
+    void showTimerTime();
+    void showAllConnections(Client *client);
 
-
-    void timer_start();
-    void timer_stop();
-    void timer_reset();
-    void show_timer_time();
-    void show_all_connections(Client *client);
 
 };
 
