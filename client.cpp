@@ -67,7 +67,15 @@ void Client::start_read()
 
         input_data = QString(new_socket->readLine());
         text_input_list.append(input_data);
+        if(text_input_list.last().startsWith("send to name ")){
 
+            QString username = text_input_list.last().split(" ")[3];
+            //QString message = text_input_list.last().split(" ")[4];
+            QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
+
+            send_private_to_name(username,message);
+
+        }
         if (text_input_list.last().startsWith("send private to "))
         {
             int targetIndex = text_input_list.last().split(" ")[3].toInt();
@@ -82,6 +90,7 @@ void Client::start_read()
         }
         if(text_input_list.last().startsWith("setname: "))
         {
+
             QString username = text_input_list.join("").remove(0, text_input_list.last().indexOf(" ")).trimmed();
             set_name(username);
         }
@@ -154,9 +163,13 @@ void Client::send_to_all(const QString &message)
 
 void Client::set_name(const QString &username)
 {
-    user_name = username;
-    QByteArray data = (user_name.toUtf8()+"\r\n");
-    new_socket->write(data);
+
+    if(!check_if_user_exist(username)){
+        user_name = username;
+        QByteArray data = (user_name.toUtf8()+"\r\n");
+        new_socket->write(data);
+    }
+    new_socket->write("Der Benutzer ist bereits belegt versuch einen anderen");
 
 }
 
@@ -182,7 +195,35 @@ void Client::show_help()
 
 void Client::send_private_to_name(const QString &username, const QString &message)
 {
+    //QString cleanedMessage = message.mid(QString(" ").length()).trimmed();
 
+
+    QString cleanedMessage = message.mid(QString("send to name %1").arg(username).length()-4).trimmed();
+    qDebug() << cleanedMessage;
+    QString myname = QString(this->user_name).toUtf8();
+
+    for (int i = 0; i < Server::clienten.size(); ++i) {
+
+        Client *c = Server::clienten[i];
+        if(c->user_name.toUtf8() == username){
+
+            QByteArray data = ("["+myname+"]"+cleanedMessage + "\r\n").toUtf8();
+            c->new_socket->write(data +"\r\n");
+        }
+    }
+}
+
+bool Client::check_if_user_exist(const QString &username)
+{
+    for (int i = 0; i < Server::clienten.size(); ++i) {
+
+        Client *c = Server::clienten[i];
+        if(c->user_name.toUtf8() == username){
+            return true;
+        }
+
+    }
+    return false;
 }
 
 void Client::show_date()
@@ -192,8 +233,11 @@ void Client::show_date()
 
 void Client::closed_client_connection()
 {
+    int myIndex = Server::clienten.indexOf(this);
+
     qDebug("wird gesloescht");
     new_socket->deleteLater();
+    Server::clienten.remove(myIndex);
     delete this;
 }
 

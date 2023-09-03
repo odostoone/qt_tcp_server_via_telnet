@@ -27,12 +27,13 @@ public:
     void send_to_all(const QString &message);
 
     QString user_name;
-    void set_name(const QString &username);
 
+    void set_name(const QString &username);
     void show_help();
     void send_private_to_name(const QString&username, const QString &message);
-    void show_date();
+    bool check_if_user_exist(const QString &username);
 
+    void show_date();
     void closed_client_connection();
     void user_disconect();
 
@@ -49,8 +50,6 @@ public:
     void timer_reset();
     void show_timer_time();
     void show_all_connections(Client *client);
-
-
 
 };
 
