@@ -51,18 +51,7 @@ void Client::start_read()
     regexActionMap.insert("^\\s*timer\\s*time\\\r\n\\s*$",[&](){
         show_timer_time();
     });
-    regexActionMap.insert("^\\s*all\\a*:\\\r\\n\\s*$",[&](){
 
-    });
-    /*
-    QMapIterator<QString, std::function<void()>> it(regexActionMap);
-
-    while(it.hasNext()){
-        it.next();
-        const QString& pattern = it.key();
-        qDebug() << "pattern: " << pattern;
-        }
-    */
     while(new_socket->canReadLine()){
 
         input_data = QString(new_socket->readLine());
@@ -168,6 +157,8 @@ void Client::set_name(const QString &username)
         user_name = username;
         QByteArray data = (user_name.toUtf8()+"\r\n");
         new_socket->write(data);
+
+        return;
     }
     new_socket->write("Der Benutzer ist bereits belegt versuch einen anderen");
 
