@@ -6,51 +6,46 @@ Client::Client(QTcpSocket *socket, QObject *parent) : QObject(parent)
     this->new_socket = socket;
     socket->write("Hallo Client\r\v");
 
-    connect(new_socket,&QTcpSocket::readyRead,this,&Client::start_read);
-    connect(new_socket,&QTcpSocket::disconnected,this,&Client::closed_client_connection);
+    connect(new_socket,&QTcpSocket::readyRead,this,&Client::startRead);
+    connect(new_socket,&QTcpSocket::disconnected,this,&Client::cleanupConnections);
 }
 
-void Client::start_read()
+void Client::startRead()
 {
     QStringList text_input_list;
     QString input_data;
 
-    /*
-    QList<QRegularExpression> regexList;
-    regexList.append(QRegularExpression("^\\s*show\\s*user\\s*list\\\r\n\\s*$"));
-    */
-    // using ActionFunkction = std::function<void(QString, QString)>;
-    //std::map<QString, ActionFunkction> regexActionMap;
     QMap<QString, std::function<void()>> regexActionMap;
 
     regexActionMap.insert("^\\s*show\\s*user\\s*list\\\r\n\\s*$",[&](){
         qDebug() << "hellp";
-        show_all_connections(this);
+        showAllConnections(this);
     });
     regexActionMap.insert("^\\s*show\\s*my\\s*socket\\\r\n\\s*$",[&](){
-        show_my_own_connection();
+        showMyOwnConnection();
     });
     regexActionMap.insert("^\\s*show\\s*date\\\r\n\\s*$",[&](){
-        show_date();
+        showCurrentDate();
     });
     regexActionMap.insert("^\\s*help\\\r\n\\s*$",[&](){
-        show_help();
+        showHelp();
     });
     regexActionMap.insert("^\\s*exit\\\r\n\\s*$",[&](){
-        user_disconect();
+        disconnectClient();
     });
     regexActionMap.insert("^\\s*timer\\s*start\\\r\n\\s*$",[&](){
-        timer_start();
+        startTimer();
     });
     regexActionMap.insert("^\\s*timer\\s*stop\\\r\n\\s*$",[&](){
-        timer_stop();
+        stopTimer();
     });
     regexActionMap.insert("^\\s*timer\\s*reset\\\r\n\\s*$",[&](){
-        timer_reset();
+        resetTimer();
     });
     regexActionMap.insert("^\\s*timer\\s*time\\\r\n\\s*$",[&](){
-        show_timer_time();
+        showTimerTime();
     });
+
 
     while(new_socket->canReadLine()){
 
@@ -62,7 +57,7 @@ void Client::start_read()
             //QString message = text_input_list.last().split(" ")[4];
             QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
 
-            send_private_to_name(username,message);
+            sendPrivateMessageToName(username,message);
 
         }
         if (text_input_list.last().startsWith("send private to "))
@@ -70,18 +65,18 @@ void Client::start_read()
             int targetIndex = text_input_list.last().split(" ")[3].toInt();
             QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
 
-            send_private_message(targetIndex, message);
+            sendMessageToSocket(targetIndex, message);
         }
         if(text_input_list.last().startsWith("all: "))
         {
             QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
-            send_to_all(message);
+            sendMessageToAllChat(message);
         }
         if(text_input_list.last().startsWith("setname: "))
         {
 
             QString username = text_input_list.join("").remove(0, text_input_list.last().indexOf(" ")).trimmed();
-            set_name(username);
+            changeName(username);
         }
 
         for(const QString &text: text_input_list){
@@ -99,7 +94,7 @@ void Client::start_read()
 
 }
 
-void Client::show_my_own_connection()
+void Client::showMyOwnConnection()
 {
     int myIndex = Server::clienten.indexOf(this);
 
@@ -118,7 +113,7 @@ void Client::show_my_own_connection()
     }
 }
 
-void Client::send_private_message(int targetIndex, const QString &message)
+void Client::sendMessageToSocket(int targetIndex, const QString &message)
 {
     if (targetIndex >= 0 && targetIndex < Server::clienten.size() && targetIndex != Server::clienten.indexOf(this)) {
 
@@ -138,7 +133,7 @@ void Client::send_private_message(int targetIndex, const QString &message)
     }
 }
 
-void Client::send_to_all(const QString &message)
+void Client::sendMessageToAllChat(const QString &message)
 {
     for (int i = 0; i < Server::clienten.size() ; ++i){
         Client * c = Server::clienten[i];
@@ -150,23 +145,23 @@ void Client::send_to_all(const QString &message)
     }
 }
 
-void Client::set_name(const QString &username)
+void Client::changeName(const QString &username)
 {
 
-    if(!check_if_user_exist(username)){
+    if(!checkIfNameExists(username)){
         user_name = username;
         QByteArray data = (user_name.toUtf8()+"\r\n");
         new_socket->write(data);
 
         return;
     }
-    new_socket->write("Der Benutzer ist bereits belegt versuch einen anderen");
+    new_socket->write("Der Benutzer ist bereits belegt versuch einen anderen\r\n");
 
 }
 
-void Client::show_help()
+void Client::showHelp()
 {
-    QString help_messeg = "============================\r\n"
+    QString help_messeg ="============================\r\n"
                           "=            HELP          =\r\n"
                           "============================\r\n"
                           "=  setname: Your Name xD   =\r\n"
@@ -184,11 +179,8 @@ void Client::show_help()
     new_socket->write(help_messeg.toUtf8());
 }
 
-void Client::send_private_to_name(const QString &username, const QString &message)
+void Client::sendPrivateMessageToName(const QString &username, const QString &message)
 {
-    //QString cleanedMessage = message.mid(QString(" ").length()).trimmed();
-
-
     QString cleanedMessage = message.mid(QString("send to name %1").arg(username).length()-4).trimmed();
     qDebug() << cleanedMessage;
     QString myname = QString(this->user_name).toUtf8();
@@ -204,7 +196,7 @@ void Client::send_private_to_name(const QString &username, const QString &messag
     }
 }
 
-bool Client::check_if_user_exist(const QString &username)
+bool Client::checkIfNameExists(const QString &username)
 {
     for (int i = 0; i < Server::clienten.size(); ++i) {
 
@@ -217,12 +209,12 @@ bool Client::check_if_user_exist(const QString &username)
     return false;
 }
 
-void Client::show_date()
+void Client::showCurrentDate()
 {
     new_socket->write(QDate::currentDate().toString().toUtf8()+"\r\n");
 }
 
-void Client::closed_client_connection()
+void Client::cleanupConnections()
 {
     int myIndex = Server::clienten.indexOf(this);
 
@@ -232,12 +224,12 @@ void Client::closed_client_connection()
     delete this;
 }
 
-void Client::user_disconect()
+void Client::disconnectClient()
 {
     new_socket->disconnectFromHost();
 }
 
-void Client::timer_start()
+void Client::startTimer()
 {
     timer = new QTimer(this);
     connect(timer,&QTimer::timeout,this,[=](){
@@ -258,12 +250,12 @@ void Client::timer_start()
     timer->start(1000);
 }
 
-void Client::timer_stop()
+void Client::stopTimer()
 {
     timer->stop();
 }
 
-void Client::timer_reset()
+void Client::resetTimer()
 {
     timer->stop();
     sec = 0;
@@ -271,14 +263,14 @@ void Client::timer_reset()
     hour = 0;
 }
 
-void Client::show_timer_time()
+void Client::showTimerTime()
 {
     QString timer_time = QString::number(hour) + " : " + QString::number(min) + " : "+ QString::number(sec)+"\r\n";
     QByteArray data = timer_time.toUtf8();
     new_socket->write(data);
 }
 
-void Client::show_all_connections(Client *client)
+void Client::showAllConnections(Client *client)
 {
     QString socketInfo;
     int count = 0;
@@ -297,6 +289,7 @@ void Client::show_all_connections(Client *client)
     QByteArray data = socketInfo.toUtf8();
     client->new_socket->write(data);
 }
+
 
 
 
