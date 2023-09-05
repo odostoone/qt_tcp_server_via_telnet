@@ -47,6 +47,7 @@ void Client::startRead()
     });
 
 
+
     while(new_socket->canReadLine()){
 
         input_data = QString(new_socket->readLine());
