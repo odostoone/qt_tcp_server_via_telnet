@@ -14,7 +14,7 @@ class Client : public QObject
 {
     Q_OBJECT
 public:
-    explicit Client(QTcpSocket * socket, QObject * parent = nullptr);
+    explicit Client(QTcpSocket * socket, QObject * parent = nullptr) ;
 
     QTcpSocket * new_socket = nullptr;
 
@@ -26,7 +26,7 @@ public:
     void sendMessageToSocket(int targetIndex, const QString &message);
     void sendMessageToAllChat(const QString &message);
 
-    QString user_name;
+    QString  user_name = "";
 
 
     void changeName(const QString &username);
@@ -48,6 +48,10 @@ public:
     void resetTimer();
     void showTimerTime();
     void showAllConnections(Client *client);
+
+signals:
+    void clientSendToAllChat(QString &message);
+
 
 
 

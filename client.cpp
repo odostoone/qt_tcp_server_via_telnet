@@ -69,8 +69,13 @@ void Client::startRead()
         }
         if(text_input_list.last().startsWith("all: "))
         {
-            QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
-            sendMessageToAllChat(message);
+            if(user_name != ""){
+                QString message = text_input_list.join(" ").remove(0, text_input_list.last().indexOf(" ")).trimmed();
+                sendMessageToAllChat(message);
+                return;
+            }
+            this->new_socket->write("setze erst einen namen\r\n");
+
         }
         if(text_input_list.last().startsWith("setname: "))
         {
@@ -135,6 +140,10 @@ void Client::sendMessageToSocket(int targetIndex, const QString &message)
 
 void Client::sendMessageToAllChat(const QString &message)
 {
+    QString allChatString = QString("["+QTime::currentTime().toString().toUtf8()+"]["+this->user_name + "]\t"+
+                                    message);
+    emit this->clientSendToAllChat(allChatString);
+
     for (int i = 0; i < Server::clienten.size() ; ++i){
         Client * c = Server::clienten[i];
 

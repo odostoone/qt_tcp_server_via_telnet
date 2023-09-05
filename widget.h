@@ -19,5 +19,12 @@ public:
 private:
     Ui::Widget *ui;
     Server * new_server;
+
+public slots:
+    void updateTextBrowser(QString &message);
+    void updateTextBrowserUser();
+
+signals:
+    void receivedMessage(const QString &message);
 };
 #endif // WIDGET_H

@@ -20,9 +20,17 @@ public:
     QTcpSocket * new_socket = nullptr;
 
     QPointer<Client>  new_clienten;
+    const QString allChatMassage;
 
 public slots:
-        void new_connection();
+    void new_connection();
+    void getMessageFromClient(QString &message);
+
+signals:
+    void messageHasReceived(QString &message);
+    void clientHasConnected();
+    void clientHasDisconnected();
+
 
 };
 
